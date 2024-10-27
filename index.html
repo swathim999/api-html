@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horoscope Application</title>
+</head>
+<body>
+    <h1>Horoscope Application</h1>
+    <label for="sign">Select your sign:</label>
+    <select id="sign">
+        <option value="1">Aries</option>
+        <option value="2">Taurus</option>
+        <option value="3">Gemini</option>
+        <option value="4">Cancer</option>
+        <option value="5">Leo</option>
+        <option value="6">Virgo</option>
+        <option value="7">Libra</option>
+        <option value="8">Scorpio</option>
+        <option value="9">Sagittarius</option>
+        <option value="10">Capricorn</option>
+        <option value="11">Aquarius</option>
+        <option value="12">Pisces</option>
+    </select>
+
+    <label for="dob">Date of Birth (YYYY-MM-DD):</label>
+    <input type="date" id="dob" value="1976-06-10" />
+
+    <label for="time">Time of Birth (HH:MM):</label>
+    <input type="time" id="time" value="11:10" />
+
+    <button id="getHoroscope">Get Horoscope</button>
+    <p id="horoscopeText">Your Horoscope Details will appear here...</p>
+
+    <script>
+        document.getElementById("getHoroscope").addEventListener("click", function() {
+            const sign = document.getElementById("sign").value;
+            const dob = new Date(document.getElementById("dob").value);
+            const time = document.getElementById("time").value.split(":");
+            
+            // Prepare the input data dynamically based on user input
+            const inputData = {
+                year: dob.getFullYear(),
+                month: dob.getMonth() + 1,  // Months are 0-indexed
+                date: dob.getDate(),
+                hours: parseInt(time[0]),
+                minutes: parseInt(time[1]),
+                seconds: 0,
+                latitude: 18.933,  // Static or user input
+                longitude: 72.8166, // Static or user input
+                timezone: 5.5, // Static or user input
+                config: {
+                    observation_point: "topocentric",
+                    ayanamsha: "lahiri"
+                }
+            };
+
+            // Send the API request
+            fetch("https://json.apiastro.com/planets", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": "f1rCSIgq931mbp3Q2lYt86soc1NkecT33u5Muvgn"
+                },
+                body: JSON.stringify(inputData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network response was not ok");
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Process the received data
+                let output = "";
+                if (data.output && data.output.length > 0) {
+                    // Get the first object from the output for detailed planet info
+                    const planets = data.output[0];
+                    for (const key in planets) {
+                        const planetData = planets[key];
+                        output += `${planetData.name}: Current Sign: ${planetData.current_sign}, Full Degree: ${planetData.fullDegree}, Is Retro: ${planetData.isRetro}<br>`;
+                    }
+                } else {
+                    output = "No data found.";
+                }
+                document.getElementById("horoscopeText").innerHTML = output;
+            })
+            .catch(error => {
+                console.error("Error fetching horoscope data:", error);
+                document.getElementById("horoscopeText").textContent = `Error fetching horoscope data: ${error.message}`;
+            });
+        });
+    </script>
+</body>
+</html>
